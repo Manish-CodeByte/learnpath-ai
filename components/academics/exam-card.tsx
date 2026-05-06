@@ -132,3 +132,4 @@ export function ExamCard({ exam }: ExamCardProps) {
         </Card>
     )
 }
+

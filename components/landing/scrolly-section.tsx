@@ -58,3 +58,4 @@ export const ScrollySection = ({ features }: ScrollySectionProps) => {
         </div>
     )
 }
+

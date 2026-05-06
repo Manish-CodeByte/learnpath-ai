@@ -6,7 +6,7 @@ import {
     Hr,
 } from '@react-email/components'
 import * as React from 'react'
-import { StudyBoardEmail } from './StudyBoardEmail'
+import { LearnPath AIEmail } from './LearnPath AIEmail'
 
 interface Assignment {
     id: number
@@ -67,7 +67,7 @@ export function DailyDigestEmail({
         : `Here's your daily study digest`
 
     return (
-        <StudyBoardEmail
+        <LearnPath AIEmail
             previewText={previewText}
             heading={heading}
             userName={userName}
@@ -174,7 +174,7 @@ export function DailyDigestEmail({
                     {getRandomTip()}
                 </Text>
             </Section>
-        </StudyBoardEmail>
+        </LearnPath AIEmail>
     )
 }
 
@@ -416,3 +416,4 @@ const tipsText = {
 }
 
 export default DailyDigestEmail
+

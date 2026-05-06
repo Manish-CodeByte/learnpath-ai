@@ -11,3 +11,4 @@ export const calculateProgress = (xp: number, level: number, nextLevelXP: number
     const prevLevelXP = Math.pow(level - 1, 2) * 100;
     return ((xp - prevLevelXP) / (nextLevelXP - prevLevelXP)) * 100;
 };
+

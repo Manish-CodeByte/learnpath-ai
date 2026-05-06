@@ -95,3 +95,4 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(new URL('/?spotify_error=auth_failed', request.url))
     }
 }
+

@@ -435,3 +435,4 @@ function SubjectGroup({ group, renderResourceCard }: { group: any, renderResourc
         </motion.div>
     )
 }
+

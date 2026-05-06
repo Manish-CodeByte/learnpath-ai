@@ -281,3 +281,4 @@ export function StudyPlannerDialog({ open, onOpenChange, examDate, subjectId, ex
         </Dialog>
     )
 }
+

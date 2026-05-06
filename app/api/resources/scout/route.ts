@@ -88,7 +88,7 @@ async function validateUrl(url: string): Promise<boolean> {
             signal: controller.signal,
             redirect: 'follow',
             headers: {
-                'User-Agent': 'Mozilla/5.0 (compatible; StudyBoard/1.0)'
+                'User-Agent': 'Mozilla/5.0 (compatible; LearnPath AI/1.0)'
             }
         })
 
@@ -235,4 +235,5 @@ CRITICAL: Only include URLs you verified exist. If unsure, leave url as empty st
         return NextResponse.json({ error: "Failed to scout resources" }, { status: 500 })
     }
 }
+
 

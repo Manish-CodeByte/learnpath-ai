@@ -174,3 +174,4 @@ export function SyllabusList({ subjectId, initialModules, onUpdate }: SyllabusLi
         </div>
     )
 }
+

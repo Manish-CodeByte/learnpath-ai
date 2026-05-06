@@ -685,3 +685,4 @@ export function StudyPlannerWizard({ open, onOpenChange, defaultSubjectId }: Stu
         </Dialog>
     )
 }
+

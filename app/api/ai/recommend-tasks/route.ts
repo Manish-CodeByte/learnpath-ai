@@ -104,3 +104,4 @@ Return a strict JSON array:
         return NextResponse.json({ error: "Failed to generate recommendations" }, { status: 500 })
     }
 }
+

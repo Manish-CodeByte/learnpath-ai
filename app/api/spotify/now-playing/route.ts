@@ -225,3 +225,4 @@ export async function GET() {
         return NextResponse.json({ connected: true, isPlaying: false, error: 'fetch_failed' })
     }
 }
+

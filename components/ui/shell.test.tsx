@@ -38,3 +38,4 @@ describe("Shell", () => {
         expect(main.className).toContain("bg-red-500")
     })
 })
+

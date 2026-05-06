@@ -259,3 +259,4 @@ export function TourOverlay({ step, stepIndex, totalSteps, onNext, onSkip }: Tou
         </div>
     )
 }
+

@@ -265,3 +265,4 @@ Create a COMPLETE study plan covering the FULL DURATION from today (${daysRemain
         return NextResponse.json({ error: 'Failed to generate plan' }, { status: 500 })
     }
 }
+

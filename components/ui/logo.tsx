@@ -42,3 +42,4 @@ export function Logo({ className, collapsed = false }: { className?: string, col
 
     )
 }
+

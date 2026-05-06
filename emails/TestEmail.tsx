@@ -4,7 +4,7 @@ import {
     Hr,
 } from '@react-email/components'
 import * as React from 'react'
-import { StudyBoardEmail } from './StudyBoardEmail'
+import { LearnPath AIEmail } from './LearnPath AIEmail'
 
 interface TestEmailProps {
     userName?: string
@@ -12,7 +12,7 @@ interface TestEmailProps {
 
 export function TestEmail({ userName }: TestEmailProps) {
     return (
-        <StudyBoardEmail
+        <LearnPath AIEmail
             previewText="🧪 Your LearnPath AI notifications are working!"
             heading="Your notifications are set up! 🎉"
             userName={userName}
@@ -66,7 +66,7 @@ export function TestEmail({ userName }: TestEmailProps) {
                     Ready to crush your goals? Open LearnPath AI and start organizing! 💪
                 </Text>
             </Section>
-        </StudyBoardEmail>
+        </LearnPath AIEmail>
     )
 }
 
@@ -229,3 +229,4 @@ const ctaText = {
 }
 
 export default TestEmail
+

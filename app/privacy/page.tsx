@@ -74,7 +74,7 @@ export default function PrivacyPage() {
                         <h2 className="text-2xl font-semibold mb-4">7. Contact</h2>
                         <p className="text-muted-foreground leading-relaxed">
                             For any privacy-related questions, please open an issue on our{" "}
-                            <Link href="https://github.com/tripathiji1312/study_board" className="text-primary hover:underline">GitHub repository</Link>.
+                            <Link href="https://github.com/Manish-CodeByte/learnpath-ai" className="text-primary hover:underline">GitHub repository</Link>.
                         </p>
                     </section>
                 </div>
@@ -82,3 +82,4 @@ export default function PrivacyPage() {
         </div>
     )
 }
+

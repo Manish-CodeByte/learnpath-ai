@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="image.png" alt="StudyBoard Logo" width="300" />
+  <img src="image.png" alt="LearnPath AI Logo" width="300" />
   <p><strong>The ultimate AI-powered command center for academic excellence.</strong></p>
 
   <p>
@@ -22,10 +22,10 @@
 
 ## 🚀 Overview
 
-**StudyBoard** is a sophisticated, student-centric productivity platform that leverages artificial intelligence to streamline academic workflows. It unifies task management, focus tracking, and grade analytics into a single, cohesive dashboard designed to eliminate cognitive load and maximize student performance.
+**LearnPath AI** is a sophisticated, student-centric productivity platform that leverages artificial intelligence to streamline academic workflows. It unifies task management, focus tracking, and grade analytics into a single, cohesive dashboard designed to eliminate cognitive load and maximize student performance.
 
 > [!IMPORTANT]
-> **Free Forever Core**: StudyBoard is committed to providing its essential features for free to students everywhere.
+> **Free Forever Core**: LearnPath AI is committed to providing its essential features for free to students everywhere.
 
 ---
 
@@ -52,7 +52,7 @@
 
 ## 📐 Architecture
 
-The following diagram illustrates how StudyBoard processes your academic data to provide AI-driven insights:
+The following diagram illustrates how LearnPath AI processes your academic data to provide AI-driven insights:
 
 ```mermaid
 graph TD
@@ -84,7 +84,7 @@ graph TD
 ## 🏗️ Project Structure
 
 ```text
-study_board/
+learnpath-ai/
 ├── app/                  # Next.js App Router (Pages & API)
 │   ├── api/              # AI, Auth, and Database endpoints
 │   ├── (auth)/           # Authentication flows
@@ -166,7 +166,7 @@ graph TD
 ## 🏗️ Project Structure
 
 ```text
-study_board/
+learnpath-ai/
 ├── app/                  # Next.js App Router (Pages & API)
 ├── components/           # UI components
 ├── lib/                  # Shared utilities (Prisma, AI helpers)
@@ -184,8 +184,8 @@ study_board/
 
 ### 1. Installation
 ```bash
-git clone https://github.com/tripathiji1312/study_board.git
-cd study_board
+git clone https://github.com/Manish-CodeByte/learnpath-ai.git
+cd learnpath-ai
 npm install
 ```
 
@@ -211,4 +211,5 @@ PRs welcome — fork, branch, implement, and open a PR.
 
 LearnPath AI is released under the [MIT License](LICENSE).
 
-<p align="center">Made with 🖤 by <a href="https://github.com/tripathiji1312">tripathiji1312</a></p>
+<p align="center">Made with 🖤 by <a href="https://github.com/Manish-CodeByte">Manish-CodeByte</a></p>
+

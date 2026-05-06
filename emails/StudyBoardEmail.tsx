@@ -12,7 +12,7 @@ import {
 } from '@react-email/components'
 import * as React from 'react'
 
-interface StudyBoardEmailProps {
+interface LearnPath AIEmailProps {
     previewText: string
     heading: string
     userName?: string
@@ -28,12 +28,12 @@ const quotes = [
     "The only way to do great work is to love what you do. – Steve Jobs",
 ]
 
-export function StudyBoardEmail({
+export function LearnPath AIEmail({
     previewText,
     heading,
     userName,
     children,
-}: StudyBoardEmailProps) {
+}: LearnPath AIEmailProps) {
     const randomQuote = quotes[Math.floor(Math.random() * quotes.length)]
 
     return (
@@ -161,4 +161,5 @@ const link = {
     fontWeight: '500' as const,
 }
 
-export default StudyBoardEmail
+export default LearnPath AIEmail
+

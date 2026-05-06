@@ -82,3 +82,4 @@ export function GamificationWidget({ todayMinutes }: { todayMinutes: number }) {
         </div>
     )
 }
+

@@ -62,3 +62,4 @@ export function BadgesWidget() {
         </div>
     )
 }
+

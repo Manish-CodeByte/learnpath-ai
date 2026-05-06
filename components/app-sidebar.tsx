@@ -200,3 +200,4 @@ export function AppSidebar({ className, isOpen, onOpenChange }: SidebarProps) {
         </>
     )
 }
+

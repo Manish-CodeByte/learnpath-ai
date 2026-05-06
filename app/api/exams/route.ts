@@ -78,3 +78,4 @@ export async function DELETE(req: Request) {
         return NextResponse.json({ error: "Failed to delete exam" }, { status: 500 })
     }
 }
+

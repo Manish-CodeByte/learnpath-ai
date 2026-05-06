@@ -1,7 +1,7 @@
 # TODO - LearnPath AI Transformation
 
 ## Step 1 — Branding audit + update (approved)
-- [x] Search for occurrences of “Study Board/StudyBoard”
+- [x] Search for occurrences of “Study Board/LearnPath AI”
 - [ ] Update `app/layout.tsx` metadata (title/description already present: verify)
 - [x] Update landing hero headline/subheading/CTAs + footer and marketing copy in `components/landing-page.tsx`
 
@@ -30,4 +30,5 @@
 ## Step 6 — Final QA
 - [ ] Run lint/build
 - [ ] Smoke test: Landing page + auth + roadmap generation
+
 

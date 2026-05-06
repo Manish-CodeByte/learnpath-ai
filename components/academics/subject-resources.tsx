@@ -96,3 +96,4 @@ export function SubjectResources({ subjectId }: SubjectResourcesProps) {
         </div>
     )
 }
+

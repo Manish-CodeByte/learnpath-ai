@@ -322,7 +322,7 @@ export function LandingPage() {
                   <CardItem
                     translateZ={20}
                     as={Link}
-                    href="https://github.com/tripathiji1312/study_board"
+                    href="https://github.com/Manish-CodeByte/learnpath-ai"
                     target="_blank"
                     className="px-5 py-2.5 rounded-full text-sm font-medium border border-border hover:bg-accent/50 transition-colors"
                   >
@@ -354,7 +354,7 @@ export function LandingPage() {
             <Link href="/terms" className="hover:text-foreground transition-colors">
               Terms
             </Link>
-            <Link href="https://github.com/tripathiji1312/study_board" className="hover:text-foreground transition-colors">
+            <Link href="https://github.com/Manish-CodeByte/learnpath-ai" className="hover:text-foreground transition-colors">
               GitHub
             </Link>
           </div>
@@ -489,4 +489,5 @@ const steps = [
     description: "Monitor progress, complete modules, and get mentor suggestions.",
   },
 ]
+
 

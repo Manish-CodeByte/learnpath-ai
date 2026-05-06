@@ -52,3 +52,4 @@ export function SWRProvider({ children }: SWRProviderProps) {
         </SWRConfig>
     )
 }
+

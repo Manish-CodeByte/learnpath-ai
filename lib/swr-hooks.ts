@@ -92,3 +92,4 @@ export function preloadData() {
     fetch('/api/assignments')
     fetch('/api/exams')
 }
+

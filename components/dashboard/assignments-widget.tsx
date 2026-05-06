@@ -81,3 +81,4 @@ export function AssignmentsWidget() {
         </Card>
     )
 }
+

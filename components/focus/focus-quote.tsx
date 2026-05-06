@@ -36,3 +36,4 @@ export function FocusQuote({ active }: { active: boolean }) {
         </motion.div>
     )
 }
+
