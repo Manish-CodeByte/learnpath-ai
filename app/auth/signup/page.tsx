@@ -1,0 +1,172 @@
+"use client"
+
+import * as React from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { signIn } from "next-auth/react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { IconBrandGithub, IconLoader, IconRocket } from "@tabler/icons-react"
+import { toast } from "sonner"
+import { Logo } from "@/components/ui/logo"
+import { motion } from "framer-motion"
+
+export default function SignUpPage() {
+    const router = useRouter()
+    const [isLoading, setIsLoading] = React.useState(false)
+    const [name, setName] = React.useState("")
+    const [email, setEmail] = React.useState("")
+    const [password, setPassword] = React.useState("")
+
+    const handleRegister = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setIsLoading(true)
+
+        try {
+            const res = await fetch("/api/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, email, password }),
+            })
+
+            const data = await res.json()
+
+            if (!res.ok) {
+                toast.error(data.error || "Registration failed")
+                return
+            }
+
+            toast.success("Account created!")
+
+            const loginRes = await signIn("credentials", {
+                redirect: false,
+                email,
+                password,
+            })
+
+            if (loginRes?.error) {
+                toast.error("Login failed. Please sign in manually.")
+                router.push("/auth/signin")
+            } else {
+                router.push("/onboarding")
+            }
+
+        } catch (error) {
+            toast.error("Something went wrong")
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    const handleOAuthLogin = (provider: "google" | "github") => {
+        setIsLoading(true)
+        signIn(provider, { callbackUrl: "/onboarding" })
+    }
+
+    return (
+        <div className="min-h-screen w-full flex items-center justify-center bg-surface p-4 relative overflow-hidden text-on-surface">
+            {/* Animated Background */}
+            <div className="absolute inset-0 z-0 opacity-40">
+                <div className="absolute bottom-0 left-0 w-[700px] h-[700px] bg-primary/10 rounded-full blur-[150px] -translate-x-1/3 translate-y-1/3" />
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-tertiary/10 rounded-full blur-[120px] translate-x-1/4 -translate-y-1/4" />
+                <div className="absolute inset-0" style={{
+                    backgroundImage: `radial-gradient(circle at 1px 1px, hsl(var(--on-surface-variant) / 0.08) 1px, transparent 0)`,
+                    backgroundSize: '32px 32px'
+                }} />
+            </div>
+
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="relative z-10 w-full max-w-[420px]"
+            >
+                <div className="bg-surface-container-high/80 backdrop-blur-xl border border-outline-variant/30 rounded-[2.5rem] shadow-expressive p-8 md:p-10 space-y-8">
+                    <div className="text-center space-y-4">
+                        <div className="flex justify-center mb-6">
+                            <Logo className="scale-125" />
+                        </div>
+                        <h1 className="text-3xl font-bold tracking-tight text-on-surface">Create your account</h1>
+                        <p className="text-on-surface-variant text-sm">
+                            Start organizing your academic life in minutes.
+                        </p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <Button variant="outline" onClick={() => handleOAuthLogin("github")} disabled={isLoading} className="w-full h-12 rounded-full border-outline hover:bg-surface-container-highest hover:text-on-surface">
+                            <IconBrandGithub className="mr-2 h-5 w-5" />
+                            Continue with GitHub
+                        </Button>
+
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <span className="w-full border-t border-outline-variant" />
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                                <span className="bg-surface-container-high px-3 text-on-surface-variant">
+                                    or sign up with email
+                                </span>
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleRegister} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name" className="text-sm font-medium text-on-surface">Full Name</Label>
+                                <Input
+                                    id="name"
+                                    placeholder="John Doe"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    className="h-12 rounded-xl bg-surface-container-highest/50 border-transparent focus:border-primary focus:bg-surface-container-highest transition-all"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="email" className="text-sm font-medium text-on-surface">Email</Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="you@example.com"
+                                    required
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="h-12 rounded-xl bg-surface-container-highest/50 border-transparent focus:border-primary focus:bg-surface-container-highest transition-all"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="password" className="text-sm font-medium text-on-surface">Password</Label>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    required
+                                    placeholder="Minimum 8 characters"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="h-12 rounded-xl bg-surface-container-highest/50 border-transparent focus:border-primary focus:bg-surface-container-highest transition-all"
+                                />
+                            </div>
+                            <Button type="submit" className="w-full h-12 rounded-full font-semibold text-base shadow-md" disabled={isLoading}>
+                                {isLoading ? <IconLoader className="mr-2 h-4 w-4 animate-spin" /> : <IconRocket className="mr-2 h-4 w-4" />}
+                                Create Account
+                            </Button>
+                        </form>
+                    </div>
+
+                    <p className="text-center text-sm text-on-surface-variant">
+                        Already have an account?{" "}
+                        <Link href="/auth/signin" className="text-primary font-medium hover:underline">
+                            Sign in
+                        </Link>
+                    </p>
+                </div>
+
+                <p className="text-center text-xs text-on-surface-variant mt-6">
+                    By creating an account, you agree to our{" "}
+                    <Link href="/terms" className="underline hover:text-on-surface">Terms</Link>
+                    {" "}and{" "}
+                    <Link href="/privacy" className="underline hover:text-on-surface">Privacy Policy</Link>.
+                </p>
+            </motion.div>
+        </div>
+    )
+}

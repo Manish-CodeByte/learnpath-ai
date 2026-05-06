@@ -1,0 +1,423 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ========== USER (Central Hub) ==========
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  
+  accounts      Account[]
+  sessions      Session[]
+  
+  // User Data Relations
+  settings      UserSettings?
+  semesters     Semester[]
+  subjects      Subject[]
+  assignments   Assignment[]
+  todos         Todo[]
+  tags          Tag[]
+  projects      Project[]
+  schedule      ScheduleEvent[]
+  resources     Resource[]
+  exams         Exam[]
+  logs          DailyLog[]
+  books         Book[]
+  ideas         Idea[]
+  snippets      Snippet[]
+}
+
+// ========== SEMESTER ==========
+model Semester {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  name      String   // "Fall 2024", "Spring 2025"
+  startDate String
+  endDate   String
+  isCurrent Boolean  @default(false)
+  subjects  Subject[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ========== SUBJECT (Enhanced) ==========
+model Subject {
+  id          String   @id @default(uuid())
+  userId      String
+  name        String
+  code        String
+  credits     Int
+  type        String   // "Theory", "Lab", "Embedded"
+  slot        String?  // "A1", "B1+TB1", etc.
+  
+  // Teacher Info
+  teacherName  String?
+  teacherEmail String?
+  cabinNo      String?
+  labRoom      String?
+  classRoom    String?
+  
+  // Marks
+  cat1        Float?
+  cat2        Float?
+  da          Float?  
+  fat         Float?
+  labInternal Float?
+  labFat      Float?
+  
+  // Relations
+  semesterId  Int?
+  semester    Semester? @relation(fields: [semesterId], references: [id])
+  modules     SyllabusModule[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ========== SYLLABUS MODULE (New) ==========
+model SyllabusModule {
+  id        String   @id @default(uuid())
+  title     String
+  topics    String[] 
+  status    String   @default("Pending") 
+  order     Int      @default(0)
+  
+  // Retention Tracking
+  lastStudiedAt DateTime?
+  reviewCount   Int      @default(0)
+  strength      Float    @default(1.0)
+  
+  subjectId String
+  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ========== ASSIGNMENT ==========
+model Assignment {
+  id          Int      @id @default(autoincrement())
+  userId      String
+  title       String
+  subject     String   
+  subjectId   String?  
+  due         String
+  priority    String
+  status      String
+  platform    String?  
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ========== TODO (Enhanced - Todoist Style) ==========
+model Todo {
+  id          String    @id @default(uuid())
+  userId      String
+  text        String
+  description String?   
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  
+  // Scheduling
+  dueDate     String?   
+  dueTime     String?   
+  
+  // Organization
+  priority    Int       @default(4) 
+  subjectId   String?   
+  
+  // Subtasks
+  parentId    String?
+  parent      Todo?     @relation("Subtasks", fields: [parentId], references: [id], onDelete: Cascade)
+  subtasks    Todo[]    @relation("Subtasks")
+  
+  // Tags
+  tags        TodoTag[]
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  rescheduleCount Int   @default(0)
+  
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ========== TAG (Site-wide) ==========
+model Tag {
+  id        String    @id @default(uuid())
+  userId    String
+  name      String    
+  color     String    @default("#6366f1") 
+  
+  todos      TodoTag[]
+  projects   ProjectTag[]
+  ideas      IdeaTag[]
+  snippets   SnippetTag[]
+  resources  ResourceTag[]
+  
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Ensure unique tag names per user
+  @@unique([userId, name])
+}
+
+// ========== TODO-TAG (Junction) ==========
+model TodoTag {
+  id      String @id @default(uuid())
+  todoId  String
+  tagId   String
+  todo    Todo   @relation(fields: [todoId], references: [id], onDelete: Cascade)
+  tag     Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@unique([todoId, tagId])
+}
+
+// ========== PROJECT-TAG (Junction) ==========
+model ProjectTag {
+  id        String  @id @default(uuid())
+  projectId Int
+  tagId     String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@unique([projectId, tagId])
+}
+
+// ========== IDEA-TAG (Junction) ==========
+model IdeaTag {
+  id      String @id @default(uuid())
+  ideaId  String
+  tagId   String
+  idea    Idea   @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  tag     Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@unique([ideaId, tagId])
+}
+
+// ========== SNIPPET-TAG (Junction) ==========
+model SnippetTag {
+  id        String  @id @default(uuid())
+  snippetId String
+  tagId     String
+  snippet   Snippet @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@unique([snippetId, tagId])
+}
+
+// ========== RESOURCE-TAG (Junction) ==========
+model ResourceTag {
+  id         String   @id @default(uuid())
+  resourceId Int
+  tagId      String
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@unique([resourceId, tagId])
+}
+
+// ========== PROJECT ==========
+model Project {
+  id          Int          @id @default(autoincrement())
+  userId      String
+  title       String
+  description String
+  progress    Int          @default(0)
+  status      String
+  tech        String       
+  githubUrl   String?      
+  updated     String
+  tags        ProjectTag[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ========== SCHEDULE EVENT ==========
+model ScheduleEvent {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  title     String
+  type      String   
+  time      String
+  duration  String
+  location  String?
+  day       String   
+  subjectId String?  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ========== RESOURCE ==========
+model Resource {
+  id        Int           @id @default(autoincrement())
+  userId    String
+  title     String
+  type      String        
+  url       String?
+  category  String
+  meta      String?       
+  subjectId String?       
+  syllabusModuleId String? 
+  scoutedByAi Boolean     @default(false)
+  tags      ResourceTag[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ========== USER SETTINGS ==========
+model UserSettings {
+  id             Int     @id @default(autoincrement())
+  userId         String  @unique
+  displayName    String  @default("Student")
+  email          String?
+  department     String  @default("CSE")
+  currentSemId   Int?
+  focusDuration  Int     @default(25) 
+  breakDuration  Int     @default(5)
+  emailNotifications Boolean @default(false)
+  notificationEmail String?  
+  groqApiKey     String? 
+  resendApiKey   String? // NEW: For BYOK Email
+  theme          String  @default("light")
+  hasSeenWalkthrough Boolean @default(false)
+  
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ========== EXAM ==========
+model Exam {
+  id          Int      @id @default(autoincrement())
+  userId      String
+  title       String 
+  subjectId   String? 
+  date        DateTime
+  syllabus    String? 
+  room        String?
+  seat        String?
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ========== DAILY LOG ==========
+model DailyLog {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  date      DateTime @default(now()) 
+  mood      Int 
+  note      String? 
+  sleep     Int? 
+  studyTime Int? 
+  subjectId String?
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ========== LIBRARY TRACKER ==========
+model Book {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  author    String
+  status    String   @default("toread") 
+  progress  Int      @default(0)
+  total     Int      @default(100)
+  dueDate   DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ========== IDEA BOARD ==========
+model Idea {
+  id        String    @id @default(uuid())
+  userId    String
+  content   String
+  status    String    @default("brainstorm") 
+  tags      IdeaTag[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ========== SNIPPET LIBRARY ==========
+model Snippet {
+  id           String       @id @default(uuid())
+  userId       String
+  title        String
+  content      String
+  language     String       @default("text") 
+  type         String       @default("text") 
+  legacyTags   String?      
+  tags         SnippetTag[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ========== NEXT AUTH ==========
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}

@@ -1,0 +1,12 @@
+{
+    "crons": [
+        {
+            "path": "/api/cron/digest?secret=learnpath_cron_secret_2024&type=morning",
+            "schedule": "0 8 * * *"
+        },
+        {
+            "path": "/api/cron/digest?secret=learnpath_cron_secret_2024&type=evening",
+            "schedule": "0 20 * * *"
+        }
+    ]
+}

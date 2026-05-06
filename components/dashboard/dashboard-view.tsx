@@ -1,0 +1,387 @@
+"use client"
+
+import * as React from "react"
+import Link from "next/link"
+import { Shell } from "@/components/ui/shell"
+import { Card, CardContent } from "@/components/ui/card"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import {
+    IconClipboardList,
+    IconChecklist,
+    IconRocket,
+    IconCalendarEvent,
+    IconPlus,
+    IconTargetArrow,
+    IconFlame,
+    IconTrophy,
+    IconTarget,
+    IconTrendingUp,
+    IconCalendar,
+    IconUserBolt
+} from "@tabler/icons-react"
+import { useRouter } from "next/navigation"
+import { useStore } from "@/components/providers/store-provider"
+import dynamic from "next/dynamic"
+import { StudyGraph } from "@/components/dashboard/study-graph"
+import { ExamWidget } from "@/components/dashboard/exam-widget"
+import { MoodWidget } from "@/components/dashboard/mood-widget"
+import { SmartScheduleWidget } from "@/components/dashboard/smart-schedule"
+import { AssignmentsWidget } from "@/components/dashboard/assignments-widget"
+import { ResourcesWidget } from "@/components/dashboard/resources-widget"
+import { StreakWidget, BadgesWidget } from "@/components/dashboard/gamification-widgets"
+
+const FocusAnalytics = dynamic(() => import("@/components/dashboard/focus-analytics").then(m => m.FocusAnalytics), {
+    loading: () => <ChartSkeleton />,
+    ssr: false
+})
+
+const SpotifyWidget = dynamic(
+    () =>
+        import("@/components/spotify-widget").then(
+            (m) => m.SpotifyWidget
+        ),
+    {
+        loading: () => <WidgetSkeleton className="h-[200px]" />,
+        ssr: false,
+    }
+)
+
+const MemoryLeaksWidget = dynamic(() => import("@/components/dashboard/memory-leaks-widget").then(m => m.MemoryLeaksWidget), {
+    loading: () => <WidgetSkeleton className="h-full" />,
+    ssr: false
+})
+import { WidgetSkeleton, StatCardSkeleton, ChartSkeleton } from "@/components/ui/skeleton-loaders"
+import { Skeleton } from "@/components/ui/skeleton"
+import { isToday, parseISO, differenceInDays, format } from "date-fns"
+import { motion } from "framer-motion"
+
+const container = {
+    hidden: { opacity: 0 },
+    show: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.1,
+            delayChildren: 0.1
+        }
+    }
+}
+
+const item = {
+    hidden: { 
+        opacity: 0, 
+        y: 20,
+        scale: 0.95
+    },
+    show: { 
+        opacity: 1, 
+        y: 0,
+        scale: 1,
+        transition: {
+            type: "spring",
+            stiffness: 100,
+            damping: 15
+        }
+    }
+} as const
+
+const widgetHover = {
+    rest: { scale: 1 },
+    hover: { 
+        scale: 1.02,
+        transition: {
+            type: "spring",
+            stiffness: 400,
+            damping: 25
+        }
+    }
+} as const
+
+export function DashboardView() {
+    const {
+        settings,
+        todos,
+        assignments,
+        projects,
+        schedule,
+        addTodo,
+        isLoading
+    } = useStore()
+
+    const [quickTask, setQuickTask] = React.useState("")
+    const quickAddRef = React.useRef<HTMLInputElement>(null)
+    const router = useRouter()
+
+    // Keyboard Shortcuts
+    React.useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Ignore if typing in input
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+
+            if (e.key.toLowerCase() === 'n') {
+                e.preventDefault()
+                quickAddRef.current?.focus()
+            }
+            if (e.key.toLowerCase() === 'f') {
+                e.preventDefault()
+                router.push("/focus")
+            }
+        }
+
+        window.addEventListener("keydown", handleKeyDown)
+        return () => window.removeEventListener("keydown", handleKeyDown)
+    }, [router])
+
+    // Greeting Logic
+    const getGreeting = () => {
+        const hour = new Date().getHours()
+        if (hour < 12) return "Good morning"
+        if (hour < 18) return "Good afternoon"
+        return "Good evening"
+    }
+
+    // --- Stats Calculations ---
+    const pendingAssignments = assignments.filter(a => a.status === "Pending").length
+    const todayTodos = todos.filter(t => {
+        if (t.completed) return false
+        if (!t.dueDate) return false
+        return isToday(parseISO(t.dueDate))
+    }).length
+    const activeProjects = projects.filter(p => p.status === "In Progress").length
+    const todayEvents = schedule.filter(e => {
+        try {
+            return isToday(parseISO(e.day))
+        } catch {
+            return e.day === format(new Date(), "EEEE") // Fallback for recurring days
+        }
+    }).length
+
+    // Anti-Procrastination Check
+    // Convert status to string safely to avoid conflict if types mismatch
+    const overdueCount = [...assignments, ...todos].filter(i => {
+        const item = i as any
+        const isNotDone = item.status !== "Completed" && !item.completed
+        const isDue = item.dueDate && differenceInDays(parseISO(item.dueDate), new Date()) < 0
+        return isNotDone && isDue
+    }).length
+
+    const isCrisis = overdueCount >= 3
+
+    const handleQuickAdd = (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!quickTask.trim()) return
+        addTodo({
+            text: quickTask.trim(),
+            completed: false,
+            dueDate: format(new Date(), 'yyyy-MM-dd'),
+            priority: 4
+        })
+        setQuickTask("")
+    }
+
+    return (
+        <Shell>
+            <motion.div
+                variants={container}
+                initial="hidden"
+                animate="show"
+                className="space-y-6 max-w-[1600px] mx-auto"
+            >
+                {/* Header - Beautiful Greeting Card */}
+                <motion.header variants={item}>
+                    <div className="relative overflow-hidden rounded-[2rem] bg-surface-container-low/50 border-0 shadow-sm p-6 md:p-8">
+                        {/* Mesh Gradient Background - Toned down to match solid vibe */}
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2 animate-pulse" />
+                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-secondary/20 rounded-full blur-3xl opacity-50 translate-y-1/2 -translate-x-1/2" />
+
+                        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <div className="flex items-center gap-5">
+                                {settings?.avatarUrl ? (
+                                    <Avatar className="h-14 w-14 md:h-20 md:w-20 border-2 border-surface-container-highest shadow-lg">
+                                        <AvatarImage src={settings.avatarUrl} alt={settings.displayName} className="object-cover" />
+                                        <AvatarFallback className="text-lg md:text-2xl bg-gradient-to-tr from-sky-400 to-blue-600 text-white">
+                                            {settings.displayName.substring(0, 2).toUpperCase()}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                ) : (
+                                    <div className="h-14 w-14 md:h-20 md:w-20 rounded-full bg-surface-container-highest flex items-center justify-center shadow-lg border-2 border-surface-container-highest/50">
+                                        <IconUserBolt className="h-7 w-7 md:h-10 md:w-10 text-primary" strokeWidth={2} />
+                                    </div>
+                                )}
+                                <div className="space-y-1">
+                                    {isLoading ? (
+                                        <div className="space-y-2">
+                                            <Skeleton className="h-8 w-64 bg-surface-container-highest" />
+                                            <Skeleton className="h-5 w-40 bg-surface-container-highest" />
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <h1 className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight text-foreground">
+                                                {getGreeting()}, <span className="text-primary">{settings?.displayName || "Student"}</span>
+                                            </h1>
+                                            <div className="flex items-center gap-2 text-muted-foreground text-sm md:text-base font-medium">
+                                                <IconCalendar className="w-4 h-4" />
+                                                <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Right side - widgets and CTA */}
+                            <div className="flex items-center gap-2 md:gap-3">
+                                <StreakWidget />
+                                <BadgesWidget />
+                                <Button variant="default" size="default" className="hidden md:flex rounded-full px-5 gap-2 shadow-primary-md hover:shadow-lg transition-shadow bg-primary text-primary-foreground hover:bg-primary/90" asChild>
+                                    <Link href="/focus">
+                                        <IconTargetArrow className="w-4 h-4" />
+                                        <span>Laser Mode</span>
+                                    </Link>
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </motion.header>
+
+                {/* Alert Banner */}
+                {overdueCount > 0 && (
+                    <motion.div variants={item} className={`rounded-2xl p-4 border-0 flex items-center justify-between shadow-sm ${isCrisis
+                        ? 'bg-red-500/10 text-red-600 dark:text-red-400'
+                        : 'bg-orange-500/10 text-orange-600 dark:text-orange-400'
+                        }`}>
+                        <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-full ${isCrisis ? 'bg-red-500/20 animate-pulse' : 'bg-orange-500/20'}`}>
+                                <IconFlame className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <p className="font-semibold text-sm">
+                                    {isCrisis ? 'Crisis Mode Active' : 'Action Required'}
+                                </p>
+                                <p className="text-xs opacity-90">
+                                    You have {overdueCount} overdue items. {isCrisis && "Time to lock in."}
+                                </p>
+                            </div>
+                        </div>
+                        <Button variant="ghost" size="sm" className="hover:bg-surface-container-highest/50 h-8 text-xs rounded-full" asChild>
+                            <Link href="/todos">Review</Link>
+                        </Button>
+                    </motion.div>
+                )}
+
+                {/* Focus Analytics */}
+                <motion.div variants={item}>
+                    <FocusAnalytics />
+                </motion.div>
+
+                {/* Key Metrics Row - Horizontal scroll on mobile */}
+                <motion.div variants={item} className="-mx-4 px-4 md:mx-0 md:px-0">
+                    <div className="flex gap-3 overflow-x-auto scrollbar-hide md:grid md:grid-cols-4 md:gap-4 pb-2 md:pb-0">
+                        {isLoading ? (
+                            Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)
+                        ) : (
+                            [
+                                { label: "Pending", val: pendingAssignments, icon: IconClipboardList, color: "text-orange-500", bg: "bg-orange-500/10", href: "/assignments" },
+                                { label: "Tasks", val: todayTodos, icon: IconChecklist, color: "text-blue-500", bg: "bg-blue-500/10", href: "/todos" },
+                                { label: "Projects", val: activeProjects, icon: IconRocket, color: "text-purple-500", bg: "bg-purple-500/10", href: "/projects" },
+                                { label: "Schedule", val: todayEvents, icon: IconCalendarEvent, color: "text-emerald-500", bg: "bg-emerald-500/10", href: "/schedule" },
+                            ].map((stat, i) => (
+                                <Link key={i} href={stat.href} className="flex-shrink-0 w-[140px] md:w-auto">
+                                    <Card className="hover:bg-surface-container-high transition-all cursor-pointer group touch-manipulation active:scale-[0.98] border-0 shadow-none bg-surface-container-low hover-lift">
+                                        <CardContent className="p-3 md:p-4 flex items-center gap-3 md:gap-4">
+                                            <div className={`p-2 md:p-3 rounded-xl ${stat.bg} ${stat.color} group-hover:scale-110 transition-transform`}>
+                                                <stat.icon className="w-5 h-5 md:w-6 md:h-6" />
+                                            </div>
+                                            <div>
+                                                <p className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">{stat.val}</p>
+                                                <p className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wide">{stat.label}</p>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </Link>
+                            ))
+                        )}
+                    </div>
+                </motion.div>
+
+                {/* Quick Add Input */}
+                <motion.div variants={item}>
+                    <form onSubmit={handleQuickAdd} className="relative group">
+                        <Input
+                            ref={quickAddRef}
+                            value={quickTask}
+                            onChange={e => setQuickTask(e.target.value)}
+                            placeholder="What needs to be done? (Press 'N')"
+                            className="h-12 pl-4 pr-12 bg-surface-container-low border-0 focus:ring-2 focus:ring-primary/20 shadow-none rounded-2xl transition-all placeholder:text-muted-foreground/50"
+                        />
+                        <Button
+                            type="submit"
+                            size="icon"
+                            className="absolute right-1.5 top-1.5 h-9 w-9 rounded-xl shadow-none opacity-0 group-hover:opacity-100 transition-opacity bg-primary text-primary-foreground hover:bg-primary/90"
+                            disabled={!quickTask.trim()}
+                        >
+                            <IconPlus className="w-4 h-4" />
+                        </Button>
+                    </form>
+                </motion.div>
+
+                {/* Main Grid Layout */}
+                <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {isLoading ? (
+                        <>
+                            {/* Column 1 Skeleton */}
+                            <div className="flex flex-col gap-6 h-auto md:h-[500px]">
+                                <WidgetSkeleton className="flex-1" />
+                                <WidgetSkeleton className="h-[200px]" />
+                            </div>
+                            {/* Column 2 Skeleton */}
+                            <div className="h-[500px] md:h-[500px]">
+                                <WidgetSkeleton className="h-full" />
+                            </div>
+                            {/* Column 3 Skeleton */}
+                            <div className="flex flex-col gap-6 h-auto md:h-[500px] md:col-span-2 xl:col-span-1">
+                                <WidgetSkeleton className="flex-1" />
+                                <WidgetSkeleton className="h-[200px]" />
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            {/* Column 1: Exams & Mood */}
+                            <div className="flex flex-col gap-6 h-auto md:h-[500px]">
+                                <motion.div variants={widgetHover} initial="rest" whileHover="hover" className="flex-1 min-h-[300px] md:min-h-0"><ExamWidget /></motion.div>
+                                <motion.div variants={widgetHover} initial="rest" whileHover="hover" className="h-[200px] shrink-0"><MoodWidget /></motion.div>
+                            </div>
+
+                            {/* Column 2: Schedule (Tall) */}
+                            <div className="h-[500px] md:h-[500px]">
+                                <motion.div variants={widgetHover} initial="rest" whileHover="hover" className="h-full"><SmartScheduleWidget /></motion.div>
+                            </div>
+
+                            {/* Column 3: Assignments & Spotify */}
+                            <div className="flex flex-col gap-6 h-auto md:h-[500px] md:col-span-2 xl:col-span-1">
+                                <motion.div variants={widgetHover} initial="rest" whileHover="hover" className="flex-1 min-h-[300px] md:min-h-0"><AssignmentsWidget /></motion.div>
+                                <motion.div variants={widgetHover} initial="rest" whileHover="hover" className="h-[200px] shrink-0"><SpotifyWidget /></motion.div>
+                            </div>
+                        </>
+                    )}
+                </motion.div>
+
+                {/* Study Graph */}
+                <motion.div variants={item}>
+                    {isLoading ? <ChartSkeleton /> : <StudyGraph />}
+                </motion.div>
+
+                {/* Resources & Memory Leaks Row */}
+                <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+                    <div className="md:col-span-2 h-full">
+                        <ResourcesWidget />
+                    </div>
+                    <div className="md:col-span-1 min-h-0">
+                        <MemoryLeaksWidget />
+                    </div>
+                </motion.div>
+
+            </motion.div>
+        </Shell>
+    )
+}
